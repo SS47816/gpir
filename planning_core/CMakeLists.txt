@@ -19,7 +19,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/")
 find_package(Glog REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
-  roscpp rospy tf tf2 visualization_msgs geometry_msgs
+  roscpp rospy tf tf2 visualization_msgs geometry_msgs autoware_msgs
   common
   hdmap
   gp_planner

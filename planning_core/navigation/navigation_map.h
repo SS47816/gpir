@@ -102,6 +102,7 @@ class NavigationMap {
   ros::Publisher reference_line_pub_;
   ros::Publisher route_sequence_pub_;
   ros::Publisher virtual_obstacle_pub_;
+  ros::Publisher reference_lanes_pub_;
 
   double refernce_speed_ = 0.0;
   double adjust_speed_ = 0.0;

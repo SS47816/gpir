@@ -21,8 +21,8 @@ constexpr double kAngleThreshold = M_PI / 10.0;
 
 void MockPredictor::Init() {
   ros::NodeHandle node;
-  predict_pub_ =
-      node.advertise<visualization_msgs::MarkerArray>("/prediction", 1);
+  predict_pub_ = node.advertise<visualization_msgs::MarkerArray>("/prediction", 1);
+  obstacles_pub_ = node.advertise<autoware_msgs::DetectedObjectArray>("planning/ground_truth/objects", 1);
 }
 
 void MockPredictor::UpdateVehicleLaneMap(
@@ -61,18 +61,17 @@ void MockPredictor::UpdateVehicleLaneMap(
   }
 }
 
-void MockPredictor::VisualizePrediction(
-    const std::vector<Obstacle>& obstacles) {
+void MockPredictor::VisualizePrediction(const std::vector<Obstacle>& obstacles) {
   visualization_msgs::MarkerArray markers;
   visualization_msgs::Marker line_marker, node_marker;
+  autoware_msgs::DetectedObjectArray objects_msg;
 
   line_marker.header.frame_id = "map";
   line_marker.header.stamp = ros::Time::now();
   line_marker.type = visualization_msgs::Marker::LINE_STRIP;
   line_marker.action = visualization_msgs::Marker::MODIFY;
   line_marker.pose.orientation.w = 1;
-  line_marker.color =
-      common::ColorMap::at(common::Color::kOrange, 0.5).toRosMsg();
+  line_marker.color = common::ColorMap::at(common::Color::kOrange, 0.5).toRosMsg();
   line_marker.scale.x = line_marker.scale.y = line_marker.scale.z = 0.1;
   line_marker.lifetime = ros::Duration(0.1);
 
@@ -104,8 +103,68 @@ void MockPredictor::VisualizePrediction(
     }
     markers.markers.emplace_back(line_marker);
     markers.markers.emplace_back(node_marker);
+
+    objects_msg.objects.emplace_back(constructAutowareObject(obstacle));
   }
 
   predict_pub_.publish(markers);
+
+  objects_msg.header = line_marker.header;
+  obstacles_pub_.publish(objects_msg);
 }
+
+autoware_msgs::DetectedObject MockPredictor::constructAutowareObject(const Obstacle& obstacle)
+{
+  autoware_msgs::DetectedObject autoware_object;
+  autoware_object.header.frame_id = "map";
+  autoware_object.header.stamp = ros::Time::now();
+  autoware_object.id = obstacle.id();
+
+  const auto bbox = obstacle.BoundingBox();
+  common::CommonVisual::StateToPose(bbox.center(), bbox.angle(), &autoware_object.pose, bbox.height()/2);
+  autoware_object.dimensions.x = bbox.length();
+  autoware_object.dimensions.y = bbox.width();
+  autoware_object.dimensions.z = bbox.height();
+  autoware_object.pose_reliable = true;
+  autoware_object.velocity.linear.x = obstacle.speed();
+  autoware_object.velocity_reliable = true;
+  autoware_object.valid = true;
+  autoware_object.label = "car";
+
+  // Convex hull
+  autoware_object.convex_hull.header = autoware_object.header;
+
+  Eigen::Isometry3d T_wo;
+  tf2::fromMsg(autoware_object.pose, T_wo);
+
+  const auto dims = autoware_object.dimensions;
+  Eigen::Vector3d fl_pt{dims.x/2, dims.y/2, -dims.z/2};
+  Eigen::Vector3d fr_pt{dims.x/2, -dims.y/2, -dims.z/2};
+  Eigen::Vector3d rr_pt{-dims.x/2, -dims.y/2, -dims.z/2};
+  Eigen::Vector3d rl_pt{-dims.x/2, dims.y/2, -dims.z/2};
+  std::vector<Eigen::Vector3d> rect{std::move(fl_pt), std::move(fr_pt), std::move(rr_pt), std::move(rl_pt)};
+  for (size_t i = 0; i < 4; i++)
+  {
+    Eigen::Vector3d pt = T_wo * rect[i];
+    geometry_msgs::Point32 point;
+    point.x = pt.x();
+    point.y = pt.y();
+    point.z = pt.z();
+    autoware_object.convex_hull.polygon.points.emplace_back(point);
+  }
+  autoware_object.convex_hull.polygon.points.push_back(autoware_object.convex_hull.polygon.points.front());
+
+  autoware_msgs::Lane trajectory;
+  for (const auto& state : obstacle.prediction()) {
+    autoware_msgs::Waypoint waypoint;
+    waypoint.pose.pose.position.x = state.position.x();
+    waypoint.pose.pose.position.y = state.position.y();
+    
+    trajectory.waypoints.emplace_back(waypoint);
+    autoware_object.candidate_trajectories.lanes.emplace_back(trajectory);
+  }
+
+  return autoware_object;
+}
+
 }  // namespace planning

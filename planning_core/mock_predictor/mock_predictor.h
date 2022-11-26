@@ -10,8 +10,12 @@
 #include <ros/ros.h>
 
 #include <unordered_map>
+#include <tf2_eigen/tf2_eigen.h>
+#include <autoware_msgs/DetectedObjectArray.h>
 
 #include "planning_core/planning_common/obstacle.h"
+#include "planning_core/planning_common/planning_visual.h"
+#include "common/utils/common_visual.h"
 
 namespace planning {
 
@@ -29,9 +33,11 @@ class MockPredictor {
 
  protected:
   void VisualizePrediction(const std::vector<Obstacle>& obstacles);
+  autoware_msgs::DetectedObject constructAutowareObject(const Obstacle& obstacle);
 
  protected:
   ros::Publisher predict_pub_;
+  ros::Publisher obstacles_pub_;
 
   double dt_ = 0.0;
   double prediction_horizon_ = 0.0;

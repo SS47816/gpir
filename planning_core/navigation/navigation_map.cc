@@ -11,6 +11,7 @@
 #include <nav_msgs/Path.h>
 #include <tf/tf.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <autoware_msgs/LaneArray.h>
 
 #include "common/graph/dijkstra.hpp"
 #include "common/utils/color_map.h"
@@ -30,12 +31,10 @@ using hdmap::LaneSegmentBehavior;
 
 void NavigationMap::Init() {
   ros::NodeHandle node;
-  reference_line_pub_ =
-      node.advertise<visualization_msgs::MarkerArray>("/reference_line", 1);
-  route_sequence_pub_ =
-      node.advertise<visualization_msgs::MarkerArray>("/route_sequence", 1);
-  virtual_obstacle_pub_ =
-      node.advertise<visualization_msgs::MarkerArray>("/virtual_obstacle", 1);
+  reference_line_pub_ = node.advertise<visualization_msgs::MarkerArray>("/reference_line", 1);
+  route_sequence_pub_ = node.advertise<visualization_msgs::MarkerArray>("/route_sequence", 1);
+  virtual_obstacle_pub_ = node.advertise<visualization_msgs::MarkerArray>("/virtual_obstacle", 1);
+  reference_lanes_pub_ = node.advertise<autoware_msgs::LaneArray>("planning/reference_lanes", 1);
 }
 
 void NavigationMap::Update(std::shared_ptr<DataFrame> data_frame) {
@@ -666,6 +665,7 @@ void NavigationMap::PublishRouteSequence() {
 
 void NavigationMap::PublishReferenceLine() {
   visualization_msgs::MarkerArray markers;
+  autoware_msgs::LaneArray lane_array_msg;
 
   constexpr double sample_dis = 2.0;
   int id_count = 0;
@@ -673,6 +673,7 @@ void NavigationMap::PublishReferenceLine() {
     int num_of_points = std::ceil(reference_line.length() / sample_dis);
     double sample_interval = reference_line.length() / num_of_points;
 
+    // Visualization marker
     visualization_msgs::Marker maker;
     maker.type = visualization_msgs::Marker::LINE_STRIP;
     maker.action = visualization_msgs::Marker::MODIFY;
@@ -687,14 +688,27 @@ void NavigationMap::PublishReferenceLine() {
     maker.pose.orientation.w = 1;
     maker.lifetime = ros::Duration(0.15);
 
+    // Autoware LaneArray Msg
+    autoware_msgs::Lane lane_msg;
+    lane_msg.header = maker.header;
+    lane_msg.lane_id = maker.id;
+    
+    // Combined
     for (int i = 0; i < num_of_points; ++i) {
-      maker.points.emplace_back(
-          reference_line.GetRosPose(i * sample_interval).position);
+      auto point = reference_line.GetRosPose(i * sample_interval).position;
+      maker.points.emplace_back(point);
+      autoware_msgs::Waypoint waypoint;
+      waypoint.lane_id = lane_msg.lane_id;
+      waypoint.pose.pose.position = point;
+      lane_msg.waypoints.emplace_back(waypoint);
     }
+
     markers.markers.emplace_back(maker);
+    lane_array_msg.lanes.emplace_back(lane_msg);
   }
 
   reference_line_pub_.publish(markers);
+  reference_lanes_pub_.publish(lane_array_msg);
 }
 
 void NavigationMap::PublishVirtualObstacles() {

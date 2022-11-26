@@ -22,12 +22,9 @@ namespace planning {
 
 void GPPlanner::Init() {
   ros::NodeHandle node;
-  trajectory_pub_ =
-      node.advertise<visualization_msgs::MarkerArray>("/gp_path", 1);
-  critical_obstacle_pub_ =
-      node.advertise<visualization_msgs::MarkerArray>("/critical_obstacles", 1);
-  target_lane_pub_ = node.advertise<visualization_msgs::MarkerArray>(
-      "/behavior_target_lane", 1);
+  trajectory_pub_ = node.advertise<visualization_msgs::MarkerArray>("/gp_path", 1);
+  critical_obstacle_pub_ = node.advertise<visualization_msgs::MarkerArray>("/critical_obstacles", 1);
+  target_lane_pub_ = node.advertise<visualization_msgs::MarkerArray>("/behavior_target_lane", 1);
 
   vehicle_param_ = VehicleInfo::Instance().vehicle_param();
 }

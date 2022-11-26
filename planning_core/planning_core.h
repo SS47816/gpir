@@ -40,11 +40,11 @@ class PlanningCore {
   std::mutex route_mutex_;
   bool random_drive_mode_ = false;
   bool has_new_route_ = false;
-  ros::Subscriber route_target_sub_;
   geometry_msgs::PoseStamped route_goal_;
-
-  ros::Subscriber joy_sub_;
   int suggest_lane_change_ = 0;
+
+  ros::Subscriber route_target_sub_;
+  ros::Subscriber joy_sub_;
 
   NavigationMap navigation_map_;
   std::shared_ptr<DataFrame> data_frame_;
