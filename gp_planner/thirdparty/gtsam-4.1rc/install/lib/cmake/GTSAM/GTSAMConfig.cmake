@@ -6,7 +6,7 @@
 get_filename_component(OUR_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 if(EXISTS "${OUR_CMAKE_DIR}/CMakeCache.txt")
   # In build tree
-  set(GTSAM_INCLUDE_DIR /home/cj/research/gpir_github/src/gpir/gp_planner/thirdparty/gtsam-4.1rc CACHE PATH "GTSAM include directory")
+  set(GTSAM_INCLUDE_DIR /home/shuo/carla_ws/src/gpir/gp_planner/thirdparty/gtsam-4.1rc CACHE PATH "GTSAM include directory")
 else()
   # Find installed library
   set(GTSAM_INCLUDE_DIR "${OUR_CMAKE_DIR}/../../../include" CACHE PATH "GTSAM include directory")

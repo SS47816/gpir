@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "${default}",
+                "limitSymbolsToIncludedHeaders": false
+            },
+            "includePath": [
+                "/home/shuo/carla_ws/devel/include/**",
+                "/home/shuo/gpir_ws/devel/include/**",
+                "/opt/ros/noetic/include/**",
+                "/home/shuo/carla_ws/src/gpir/ros-bridge/pcl_recorder/include/**",
+                "/usr/include/**",
+                "${workspaceFolder}",
+                "${workspaceFolder}/hdmap/thirdparty/ad_map/ad_map_access/generated/include",
+                "${workspaceFolder}/hdmap/thirdparty/ad_map/ad_physics/generated/include"
+            ],
+            "name": "ROS",
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "c++14"
+        }
+    ],
+    "version": 4
+}
