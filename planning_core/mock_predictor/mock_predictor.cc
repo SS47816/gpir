@@ -121,10 +121,10 @@ autoware_msgs::DetectedObject MockPredictor::constructAutowareObject(const Obsta
   autoware_object.id = obstacle.id();
 
   const auto bbox = obstacle.BoundingBox();
-  common::CommonVisual::StateToPose(bbox.center(), bbox.angle(), &autoware_object.pose, bbox.height()/2);
   autoware_object.dimensions.x = bbox.length();
   autoware_object.dimensions.y = bbox.width();
   autoware_object.dimensions.z = bbox.height();
+  common::CommonVisual::StateToPose(bbox.center(), bbox.angle(), &autoware_object.pose, bbox.height()/2);
   autoware_object.pose_reliable = true;
   autoware_object.velocity.linear.x = obstacle.speed();
   autoware_object.velocity_reliable = true;
@@ -159,6 +159,7 @@ autoware_msgs::DetectedObject MockPredictor::constructAutowareObject(const Obsta
     autoware_msgs::Waypoint waypoint;
     waypoint.pose.pose.position.x = state.position.x();
     waypoint.pose.pose.position.y = state.position.y();
+    waypoint.pose.pose.orientation.w = state.heading;
     
     trajectory.waypoints.emplace_back(waypoint);
     autoware_object.candidate_trajectories.lanes.emplace_back(trajectory);
