@@ -36,8 +36,7 @@ void GPPlanner::PlanOnce(NavigationMap* navigation_map_) {
   const auto& obstacles = navigation_map_->obstacles();
   reference_speed_ = navigation_map_->reference_speed();
 
-  std::vector<std::pair<hdmap::LaneSegmentBehavior, common::Trajectory>>
-      trajectory_candidate;
+  std::vector<std::pair<hdmap::LaneSegmentBehavior, common::Trajectory>> trajectory_candidate;
 
   int count = 0;
   for (const auto& reference_line : reference_lines) {
@@ -55,12 +54,11 @@ void GPPlanner::PlanOnce(NavigationMap* navigation_map_) {
   }
 
   if (!trajectory_candidate.empty()) {
-    *navigation_map_->mutable_trajectory() =
-        trajectory_candidate.front().second;
-    navigation_map_->SetPlannerLCFeedback(trajectory_candidate.front().first !=
-                                          hdmap::LaneSegmentBehavior::kKeep);
+    *navigation_map_->mutable_trajectory() = trajectory_candidate.front().second;
+    navigation_map_->SetPlannerLCFeedback(trajectory_candidate.front().first != hdmap::LaneSegmentBehavior::kKeep);
     last_behavior_ = trajectory_candidate.front().first;
-  } else {
+  } 
+  else {
     LOG(ERROR) << "[Plan]: cannot find valid trajectory, planning failed";
     navigation_map_->mutable_trajectory()->clear();
   }

@@ -34,6 +34,7 @@ class PlanningCore {
  private:
   void NewRouteCallBack(const geometry_msgs::PoseStamped& goal);
   void JoyCallBack(const sensor_msgs::Joy& joy);
+  void trajectoryCallBack(const autoware_msgs::Lane::ConstPtr& lane_msg);
   bool UpdateDataFrame();
 
  private:
@@ -45,6 +46,7 @@ class PlanningCore {
 
   ros::Subscriber route_target_sub_;
   ros::Subscriber joy_sub_;
+  ros::Subscriber trajectory_sub_;
 
   NavigationMap navigation_map_;
   std::shared_ptr<DataFrame> data_frame_;

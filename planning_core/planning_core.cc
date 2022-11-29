@@ -47,9 +47,9 @@ void PlanningCore::Init() {
   // init planning
   navigation_map_.Init();
   data_frame_ = std::make_shared<DataFrame>();
-  route_target_sub_ = node.subscribe("/move_base_simple/goal", 10,
-                                     &PlanningCore::NewRouteCallBack, this);
+  route_target_sub_ = node.subscribe("/move_base_simple/goal", 10, &PlanningCore::NewRouteCallBack, this);
   joy_sub_ = node.subscribe("/joy", 10, &PlanningCore::JoyCallBack, this);
+  trajectory_sub_ = node.subscribe("/fiss_planner/trajectory", 10, &PlanningCore::trajectoryCallBack, this);
 
   // init predictor
   mock_predictor_ = std::make_unique<ConstVelPredictor>(6, 0.2);
@@ -105,10 +105,10 @@ void PlanningCore::Run(const ros::TimerEvent&) {
   }
 
   navigation_map_.UpdateReferenceLine();
-  TIC;
-  planner_->PlanOnce(&navigation_map_);
-  TOC("PlaneOnce");
-  simulator_->SetTrajectory(navigation_map_.trajectory());
+  // TIC;
+  // planner_->PlanOnce(&navigation_map_);
+  // TOC("PlaneOnce");
+  // simulator_->SetTrajectory(navigation_map_.trajectory());
 }
 
 void PlanningCore::NewRouteCallBack(const geometry_msgs::PoseStamped& goal) {
@@ -134,6 +134,22 @@ void PlanningCore::JoyCallBack(const sensor_msgs::Joy& joy) {
     LOG(INFO) << "Add virtual Obstacles";
     navigation_map_.RandomlyAddVirtualObstacles(joy.buttons[5]);
   }
+}
+
+void PlanningCore::trajectoryCallBack(const autoware_msgs::Lane::ConstPtr& lane_msg)
+{
+  common::Trajectory trajectory;
+  for (const auto& waypoint : lane_msg->waypoints)
+  {
+    common::State state;
+    state.position = Eigen::Vector2d{waypoint.pose.pose.position.x, waypoint.pose.pose.position.y};
+    state.heading = waypoint.pose.pose.position.z;
+    state.velocity = waypoint.twist.twist.linear.x;
+    state.kappa = waypoint.cost;
+    trajectory.emplace_back(state);
+  }
+
+  simulator_->SetTrajectory(trajectory);
 }
 
 bool PlanningCore::UpdateDataFrame() {

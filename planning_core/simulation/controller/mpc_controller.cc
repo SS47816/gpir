@@ -44,8 +44,7 @@ void MpcController::Init() {
     matrix_r_(i, i) = 50;
   }
 
-  matrix_xmin_ << -OSQP_INFTY, -OSQP_INFTY, -OSQP_INFTY, min_speed_,
-      -max_steer_;
+  matrix_xmin_ << -OSQP_INFTY, -OSQP_INFTY, -OSQP_INFTY, min_speed_, -max_steer_;
   matrix_xmax_ << OSQP_INFTY, OSQP_INFTY, OSQP_INFTY, max_speed_, max_steer_;
 
   matrix_umin_ << min_acc_ * ts_, -max_srate_ * ts_;
