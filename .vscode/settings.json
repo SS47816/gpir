@@ -19,6 +19,7 @@
         "*.ipp": "cpp",
         "string_view": "cpp",
         "deque": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "limits": "cpp"
     }
 }
